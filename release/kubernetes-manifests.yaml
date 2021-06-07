@@ -33,7 +33,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/emailservice:latest
+        image: pangealab/emailservice:latest
         ports:
         - containerPort: 8080
         env:
@@ -88,7 +88,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: server
-          image: pangealab/castor/checkoutservice:latest
+          image: pangealab/checkoutservice:latest
           ports:
           - containerPort: 5050
           readinessProbe:
@@ -158,7 +158,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/recommendationservice:latest
+        image: pangealab/recommendationservice:latest
         ports:
         - containerPort: 8080
         readinessProbe:
@@ -219,7 +219,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: server
-          image: pangealab/castor/frontend:latest
+          image: pangealab/frontend:latest
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -314,7 +314,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/paymentservice:latest
+        image: pangealab/paymentservice:latest
         ports:
         - containerPort: 50051
         env:
@@ -364,7 +364,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/productcatalogservice:latest
+        image: pangealab/productcatalogservice:latest
         ports:
         - containerPort: 3550
         env:
@@ -422,7 +422,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/cartservice:latest
+        image: pangealab/cartservice:latest
         ports:
         - containerPort: 7070
         env:
@@ -479,7 +479,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: main
-        image: pangealab/castor/loadgenerator:latest
+        image: pangealab/loadgenerator:latest
         env:
         - name: FRONTEND_ADDR
           value: "frontend:80"
@@ -510,7 +510,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/currencyservice:latest
+        image: pangealab/currencyservice:latest
         ports:
         - name: grpc
           containerPort: 7000
@@ -566,7 +566,7 @@ spec:
       serviceAccountName: default
       containers:
       - name: server
-        image: pangealab/castor/shippingservice:latest
+        image: pangealab/shippingservice:latest
         ports:
         - containerPort: 50051
         env:
@@ -678,7 +678,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/castor/adservice:latest
+        image: pangealab/adservice:latest
         ports:
         - containerPort: 9555
         env:
