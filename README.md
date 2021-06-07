@@ -3,7 +3,7 @@
 </p>
 
 
-![Continuous Integration](https://github.com/GoogleCloudPlatform/microservices-demo/workflows/Continuous%20Integration%20-%20Master/Release/badge.svg)
+![Continuous Integration](https://github.com/pangealab/helios/workflows/Continuous%20Integration%20-%20Master/Release/badge.svg)
 
 
 **Online Boutique** is a cloud-native microservices demo application.
@@ -22,7 +22,7 @@ If you’re using this demo, please **★Star** this repository to show your int
 > [go/microservices-demo](http://go/microservices-demo) if you are using this
 > application.
 
-Looking for the old Hipster Shop frontend interface? Use the [manifests](https://github.com/GoogleCloudPlatform/microservices-demo/tree/v0.1.5/kubernetes-manifests) in release [v0.1.5](https://github.com/GoogleCloudPlatform/microservices-demo/releases/v0.1.5).
+Looking for the old Hipster Shop frontend interface? Use the [manifests](https://github.com/pangealab/helios/tree/v0.1.5/kubernetes-manifests) in release [v0.1.5](https://github.com/pangealab/helios/releases/v0.1.5).
 
 ## Screenshots
 
@@ -33,7 +33,7 @@ Looking for the old Hipster Shop frontend interface? Use the [manifests](https:/
 
 ## Quickstart (GKE)
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/GoogleCloudPlatform/microservices-demo&cloudshell_tutorial=README.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/pangealab/helios&cloudshell_tutorial=README.md)
 
 1. **[Create a Google Cloud Platform project](https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project)** or use an existing project. Set the `PROJECT_ID` environment variable and ensure the Google Kubernetes Engine and Cloud Operations APIs are enabled.
 
@@ -50,7 +50,7 @@ gcloud services enable monitoring.googleapis.com \
 2. **Clone this repository.**
 
 ```
-git clone https://github.com/GoogleCloudPlatform/microservices-demo.git
+git clone https://github.com/pangealab/helios.git
 cd microservices-demo
 ```
 

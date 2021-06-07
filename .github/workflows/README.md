@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-This page describes the CI/CD workflows for the Online Boutique app, which run in [Github Actions](https://github.com/GoogleCloudPlatform/microservices-demo/actions).
+This page describes the CI/CD workflows for the Online Boutique app, which run in [Github Actions](https://github.com/pangealab/helios/actions).
 
 ## Infrastructure
 
@@ -58,7 +58,7 @@ The instance will restart when the script completes in order to finish the Docke
 
 4. SSH back into the VM.
 
-5. Follow the instructions to add a new runner on the [Actions Settings page](https://github.com/GoogleCloudPlatform/microservices-demo/settings/actions) to authenticate the new runner
+5. Follow the instructions to add a new runner on the [Actions Settings page](https://github.com/pangealab/helios/settings/actions) to authenticate the new runner
 6. Start GitHub Actions as a background service:
 ```
 sudo ~/actions-runner/svc.sh install ; sudo ~/actions-runner/svc.sh start
