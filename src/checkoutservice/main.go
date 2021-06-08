@@ -111,34 +111,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Lightstep Instrumentation
-	// var srv *grpc.Server
-	srv := grpc.NewServer(
-		grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
-		grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
-	)
+	var srv *grpc.Server
 
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
 
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 
-		// Lightstep Instrumentation aangelo 5/3/2021
-		// srv = grpc.NewServer(
-		// 	grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
-		// 	grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
-		// 	grpc.StatsHandler(&ocgrpc.ServerHandler{}),
-		// )
+		// Lightstep Instrumentation
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+			grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		)
 	} else {
 		log.Info("Stats disabled.")
 
-		srv = grpc.NewServer()
+		// srv = grpc.NewServer()
 
-		// Lightstep Instrumentation aangelo 5/3/2021
-		// srv = grpc.NewServer(
-		// 	grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
-		// 	grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
-		// )
+		// Lightstep Instrumentation
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+		)
 	}
 	pb.RegisterCheckoutServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)
