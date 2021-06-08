@@ -385,7 +385,7 @@ func (cs *checkoutService) emptyUserCart(ctx context.Context, userID string) err
 func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartItem, userCurrency string) ([]*pb.OrderItem, error) {
 	out := make([]*pb.OrderItem, len(items))
 
-	// Lightstep Instrumentation aangelo 5/3/2021
+	// Lightstep Instrumentation
 	// conn, err := grpc.DialContext(ctx, cs.productCatalogSvcAddr,
 	// 	grpc.WithInsecure(),
 	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
@@ -415,7 +415,7 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 
 func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, toCurrency string) (*pb.Money, error) {
 
-	// // Lightstep Instrumentation aangelo 5/3/2021
+	// // Lightstep Instrumentation
 	// conn, err := grpc.DialContext(ctx, cs.currencySvcAddr,
 	// 	grpc.WithInsecure(),
 	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
@@ -436,10 +436,11 @@ func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, 
 
 func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, paymentInfo *pb.CreditCardInfo) (string, error) {
 
-	conn, err := grpc.DialContext(ctx, cs.paymentSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	// conn, err := grpc.DialContext(ctx, cs.paymentSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.paymentSvcAddr)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to connect payment service: %+v", err)
@@ -457,10 +458,11 @@ func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, pay
 
 func (cs *checkoutService) sendOrderConfirmation(ctx context.Context, email string, order *pb.OrderResult) error {
 
-	conn, err := grpc.DialContext(ctx, cs.emailSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	// conn, err := grpc.DialContext(ctx, cs.emailSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.emailSvcAddr)
 
 	if err != nil {
 		return fmt.Errorf("failed to connect email service: %+v", err)
@@ -474,10 +476,11 @@ func (cs *checkoutService) sendOrderConfirmation(ctx context.Context, email stri
 
 func (cs *checkoutService) shipOrder(ctx context.Context, address *pb.Address, items []*pb.CartItem) (string, error) {
 
-	conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	// conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to connect email service: %+v", err)
@@ -492,7 +495,7 @@ func (cs *checkoutService) shipOrder(ctx context.Context, address *pb.Address, i
 	return resp.GetTrackingId(), nil
 }
 
-// Lightstep Instrumentation aangelo 5/2/2021
+// Lightstep Instrumentation
 func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
 	launcher := launcher.ConfigureOpentelemetry(
 		launcher.WithLogLevel("debug"),
