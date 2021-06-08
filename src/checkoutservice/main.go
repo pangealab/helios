@@ -320,17 +320,6 @@ func (cs *checkoutService) prepareOrderItemsAndShippingQuoteFromCart(ctx context
 	return out, nil
 }
 
-// Lightstep Instrumentation
-func getConnection(ctx context.Context, target string) (conn *grpc.ClientConn, err error) {
-	return grpc.DialContext(ctx,
-		target,
-		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
-		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
-	)
-}
-
 func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Address, items []*pb.CartItem) (*pb.Money, error) {
 
 	// Lightstep Instrumentation
@@ -356,10 +345,12 @@ func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Addres
 
 func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*pb.CartItem, error) {
 
-	conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	// conn, err := grpc.DialContext(ctx, cs.cartSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 
 	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not connect cart service: %+v", err)
@@ -511,14 +502,13 @@ func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
 	return launcher
 }
 
-// TODO: Dial and create client once, reuse.
-
-// Lightstep Instrumentation aangelo 5/3/2021
-// func getConnection(ctx context.Context, target string) (conn *grpc.ClientConn, err error) {
-// 	return grpc.DialContext(ctx,
-// 		target,
-// 		grpc.WithInsecure(),
-// 		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
-// 		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()),
-// 	)
-// }
+// Lightstep Instrumentation
+func getConnection(ctx context.Context, target string) (conn *grpc.ClientConn, err error) {
+	return grpc.DialContext(ctx,
+		target,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()),
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+	)
+}
