@@ -415,10 +415,11 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 
 func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, toCurrency string) (*pb.Money, error) {
 
-	conn, err := grpc.DialContext(ctx, cs.currencySvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// // Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.currencySvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.currencySvcAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not connect currency service: %+v", err)
