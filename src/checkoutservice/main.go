@@ -34,6 +34,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	grpcotel "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+
 	pb "github.com/pangealab/helios/src/checkoutservice/genproto"
 	money "github.com/pangealab/helios/src/checkoutservice/money"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -109,7 +111,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var srv *grpc.Server
+	// Lightstep Instrumentation
+	// var srv *grpc.Server
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+	)
 
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
