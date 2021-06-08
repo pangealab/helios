@@ -25,6 +25,7 @@ import (
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"github.com/lightstep/otel-launcher-go/launcher"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -32,6 +33,8 @@ import (
 	"go.opencensus.io/plugin/ochttp/propagation/b3"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	grpcotel "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -81,8 +84,14 @@ type frontendServer struct {
 }
 
 func main() {
+
 	ctx := context.Background()
 	log := logrus.New()
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	otel := initLightstepTracing(log)
+	defer otel.Shutdown()
+
 	log.Level = logrus.DebugLevel
 	log.Formatter = &logrus.JSONFormatter{
 		FieldMap: logrus.FieldMap{
@@ -131,6 +140,7 @@ func main() {
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
 	r := mux.NewRouter()
+	r.Use(otelmux.Middleware("frontend"))
 	r.HandleFunc("/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/product/{id}", svc.productHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/cart", svc.viewCartHandler).Methods(http.MethodGet, http.MethodHead)
@@ -266,8 +276,21 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	*conn, err = grpc.DialContext(ctx, addr,
 		grpc.WithInsecure(),
 		grpc.WithTimeout(time.Second*3),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()))
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}
+}
+
+func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
+	launcher := launcher.ConfigureOpentelemetry(
+		launcher.WithLogLevel("debug"),
+		launcher.WithSpanExporterEndpoint(fmt.Sprintf("%s:%s",
+			os.Getenv("LIGHTSTEP_HOST"), os.Getenv("LIGHTSTEP_PORT"))),
+		launcher.WithLogger(log),
+	)
+	log.Info("Initialized Lightstep OpenTelemetry launcher")
+	return launcher
 }
