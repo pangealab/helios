@@ -8,7 +8,7 @@
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY K		IND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
@@ -25,6 +25,7 @@ import (
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/google/uuid"
+	"github.com/lightstep/otel-launcher-go/launcher"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
@@ -36,6 +37,8 @@ import (
 	pb "github.com/pangealab/helios/src/checkoutservice/genproto"
 	money "github.com/pangealab/helios/src/checkoutservice/money"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
+	grpcotel "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
 const (
@@ -69,6 +72,11 @@ type checkoutService struct {
 }
 
 func main() {
+
+	// Lightstep Instrumentation aangelo 5/2/2021
+	otel := initLightstepTracing(log)
+	defer otel.Shutdown()
+
 	if os.Getenv("DISABLE_TRACING") == "" {
 		log.Info("Tracing enabled.")
 		go initTracing()
@@ -104,12 +112,26 @@ func main() {
 	}
 
 	var srv *grpc.Server
+
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+
+		// Lightstep Instrumentation aangelo 5/3/2021
+		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+			grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		)
 	} else {
 		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
+
+		// Lightstep Instrumentation aangelo 5/3/2021
+		// srv = grpc.NewServer()
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+		)
 	}
 	pb.RegisterCheckoutServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)
@@ -299,9 +321,13 @@ func (cs *checkoutService) prepareOrderItemsAndShippingQuoteFromCart(ctx context
 }
 
 func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Address, items []*pb.CartItem) (*pb.Money, error) {
-	conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr,
-		grpc.WithInsecure(),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect shipping service: %+v", err)
 	}
@@ -318,7 +344,11 @@ func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Addres
 }
 
 func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*pb.CartItem, error) {
-	conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not connect cart service: %+v", err)
 	}
@@ -332,7 +362,11 @@ func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*p
 }
 
 func (cs *checkoutService) emptyUserCart(ctx context.Context, userID string) error {
-	conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return fmt.Errorf("could not connect cart service: %+v", err)
 	}
@@ -347,7 +381,10 @@ func (cs *checkoutService) emptyUserCart(ctx context.Context, userID string) err
 func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartItem, userCurrency string) ([]*pb.OrderItem, error) {
 	out := make([]*pb.OrderItem, len(items))
 
-	conn, err := grpc.DialContext(ctx, cs.productCatalogSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.productCatalogSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not connect product catalog service: %+v", err)
 	}
@@ -371,7 +408,11 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 }
 
 func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, toCurrency string) (*pb.Money, error) {
-	conn, err := grpc.DialContext(ctx, cs.currencySvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.currencySvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not connect currency service: %+v", err)
 	}
@@ -386,7 +427,11 @@ func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, 
 }
 
 func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, paymentInfo *pb.CreditCardInfo) (string, error) {
-	conn, err := grpc.DialContext(ctx, cs.paymentSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.paymentSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to connect payment service: %+v", err)
 	}
@@ -402,7 +447,11 @@ func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, pay
 }
 
 func (cs *checkoutService) sendOrderConfirmation(ctx context.Context, email string, order *pb.OrderResult) error {
-	conn, err := grpc.DialContext(ctx, cs.emailSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.emailSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return fmt.Errorf("failed to connect email service: %+v", err)
 	}
@@ -414,7 +463,11 @@ func (cs *checkoutService) sendOrderConfirmation(ctx context.Context, email stri
 }
 
 func (cs *checkoutService) shipOrder(ctx context.Context, address *pb.Address, items []*pb.CartItem) (string, error) {
-	conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+	// Lightstep Instrumentation aangelo 5/3/2021
+	// conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to connect email service: %+v", err)
 	}
@@ -428,4 +481,26 @@ func (cs *checkoutService) shipOrder(ctx context.Context, address *pb.Address, i
 	return resp.GetTrackingId(), nil
 }
 
+// Lightstep Instrumentation aangelo 5/2/2021
+func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
+	launcher := launcher.ConfigureOpentelemetry(
+		launcher.WithLogLevel("debug"),
+		launcher.WithSpanExporterEndpoint(fmt.Sprintf("%s:%s",
+			os.Getenv("LIGHTSTEP_HOST"), os.Getenv("LIGHTSTEP_PORT"))),
+		launcher.WithLogger(log),
+	)
+	log.Info("Initialized Lightstep OpenTelemetry launcher")
+	return launcher
+}
+
 // TODO: Dial and create client once, reuse.
+
+// Lightstep Instrumentation aangelo 5/3/2021
+func getConnection(ctx context.Context, target string) (conn *grpc.ClientConn, err error) {
+	return grpc.DialContext(ctx,
+		target,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()),
+	)
+}
