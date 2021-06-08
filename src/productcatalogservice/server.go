@@ -28,6 +28,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lightstep/otel-launcher-go/launcher"
 	pb "github.com/pangealab/helios/src/productcatalogservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
@@ -76,6 +77,11 @@ func init() {
 }
 
 func main() {
+
+	// LightStep Instrumentation
+	otel := initLightstepTracing(log)
+	defer otel.Shutdown()
+
 	if os.Getenv("DISABLE_TRACING") == "" {
 		log.Info("Tracing enabled.")
 		go initTracing()
@@ -297,4 +303,14 @@ func (p *productCatalog) SearchProducts(ctx context.Context, req *pb.SearchProdu
 		}
 	}
 	return &pb.SearchProductsResponse{Results: ps}, nil
+}
+
+// LightStep Instrumentation
+func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
+	launcher := launcher.ConfigureOpentelemetry(
+		launcher.WithLogLevel("debug"),
+		launcher.WithLogger(log),
+	)
+	log.Info("Initialized Lightstep OpenTelemetry launcher")
+	return launcher
 }
