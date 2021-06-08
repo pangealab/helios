@@ -506,7 +506,7 @@ spec:
         - containerPort: 7070
         envFrom:
         - configMapRef:
-            name: lightstep-configmap         
+            name: lightstep-configmap
         env:
         - name: REDIS_ADDR
           value: "redis-cart:6379"
