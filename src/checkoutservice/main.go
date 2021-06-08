@@ -385,10 +385,11 @@ func (cs *checkoutService) emptyUserCart(ctx context.Context, userID string) err
 func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartItem, userCurrency string) ([]*pb.OrderItem, error) {
 	out := make([]*pb.OrderItem, len(items))
 
-	conn, err := grpc.DialContext(ctx, cs.productCatalogSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
 	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// conn, err := grpc.DialContext(ctx, cs.productCatalogSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.productCatalogSvcAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not connect product catalog service: %+v", err)
