@@ -349,8 +349,8 @@ func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*p
 	// 	grpc.WithInsecure(),
 	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 
-	// Lightstep Instrumentation aangelo 5/3/2021
-	conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	conn, err := getConnection(ctx, cs.cartSvcAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not connect cart service: %+v", err)
