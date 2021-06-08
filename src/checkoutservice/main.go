@@ -116,9 +116,8 @@ func main() {
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
 
-		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
-
 		// Lightstep Instrumentation
+		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 		srv = grpc.NewServer(
 			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
 			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
@@ -127,9 +126,8 @@ func main() {
 	} else {
 		log.Info("Stats disabled.")
 
-		// srv = grpc.NewServer()
-
 		// Lightstep Instrumentation
+		// srv = grpc.NewServer()
 		srv = grpc.NewServer(
 			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
 			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
@@ -322,14 +320,24 @@ func (cs *checkoutService) prepareOrderItemsAndShippingQuoteFromCart(ctx context
 	return out, nil
 }
 
+// Lightstep Instrumentation
+func getConnection(ctx context.Context, target string) (conn *grpc.ClientConn, err error) {
+	return grpc.DialContext(ctx,
+		target,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpcotel.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(grpcotel.StreamClientInterceptor()),
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+	)
+}
+
 func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Address, items []*pb.CartItem) (*pb.Money, error) {
 
-	conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr,
-		grpc.WithInsecure(),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	// conn, err := grpc.DialContext(ctx, cs.shippingSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.shippingSvcAddr)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not connect shipping service: %+v", err)
