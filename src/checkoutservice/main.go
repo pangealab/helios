@@ -345,11 +345,10 @@ func (cs *checkoutService) quoteShipping(ctx context.Context, address *pb.Addres
 
 func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*pb.CartItem, error) {
 
+	// Lightstep Instrumentation
 	// conn, err := grpc.DialContext(ctx, cs.cartSvcAddr,
 	// 	grpc.WithInsecure(),
 	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation
 	conn, err := getConnection(ctx, cs.cartSvcAddr)
 
 	if err != nil {
@@ -366,10 +365,11 @@ func (cs *checkoutService) getUserCart(ctx context.Context, userID string) ([]*p
 
 func (cs *checkoutService) emptyUserCart(ctx context.Context, userID string) error {
 
-	conn, err := grpc.DialContext(ctx, cs.cartSvcAddr, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
-	// Lightstep Instrumentation aangelo 5/3/2021
-	// conn, err := getConnection(ctx, cs.shippingSvcAddr)
+	// Lightstep Instrumentation
+	// conn, err := grpc.DialContext(ctx, cs.cartSvcAddr,
+	// 	grpc.WithInsecure(),
+	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	conn, err := getConnection(ctx, cs.cartSvcAddr)
 
 	if err != nil {
 		return fmt.Errorf("could not connect cart service: %+v", err)
