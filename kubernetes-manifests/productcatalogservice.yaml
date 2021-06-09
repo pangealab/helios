@@ -32,6 +32,9 @@ spec:
         image: pangealab/productcatalogservice:latest
         ports:
         - containerPort: 3550
+        envFrom:
+        - configMapRef:
+            name: lightstep-configmap 
         env:
         - name: PORT
           value: "3550"
