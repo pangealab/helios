@@ -27,6 +27,7 @@ RUN pip install -r requirements.txt
 
 # LightStep Instrumentation
 RUN pip install opentelemetry-launcher
+RUN opentelemetry-bootstrap --action=install
 
 FROM base as final
 # Enable unbuffered logging
