@@ -41,7 +41,7 @@ spec:
           valueFrom:
             secretKeyRef:
                 name: lightstep-credentials
-                key: accessToken            
+                key: accessToken
         # - name: DISABLE_STATS
         #   value: "1"
         # - name: DISABLE_TRACING

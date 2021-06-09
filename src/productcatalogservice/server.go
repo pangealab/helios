@@ -32,6 +32,8 @@ import (
 	pb "github.com/pangealab/helios/src/productcatalogservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
+	grpcotel "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
@@ -142,10 +144,21 @@ func run(port string) string {
 	var srv *grpc.Server
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+		// LightStep Instrumentation
+		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+			grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		)
 	} else {
 		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
+		// LightStep Instrumentation
+		// srv = grpc.NewServer()
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+		)
 	}
 
 	svc := &productCatalog{}
