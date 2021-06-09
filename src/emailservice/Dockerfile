@@ -25,10 +25,6 @@ RUN apt-get -qq update \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# LightStep Instrumentation
-RUN pip install opentelemetry-launcher
-RUN opentelemetry-bootstrap --action=install
-
 FROM base as final
 # Enable unbuffered logging
 ENV PYTHONUNBUFFERED=1
@@ -43,6 +39,10 @@ RUN apt-get -qq update \
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
+
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
+RUN opentelemetry-bootstrap --action=install    
 
 WORKDIR /email_server
 
