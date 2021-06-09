@@ -52,4 +52,7 @@ COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 COPY . .
 
 EXPOSE 8080
-ENTRYPOINT [ "python", "email_server.py" ]
+
+# LightStep Instrumentation
+# ENTRYPOINT [ "python", "email_server.py" ]
+ENTRYPOINT [ "opentelemetry-instrument", "python", "email_server.py" ]
