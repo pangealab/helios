@@ -16,12 +16,6 @@ FROM openjdk:8-slim as builder
 
 WORKDIR /app
 
-# LighStep Instrumentation
-RUN apt-get -y update && apt-get install -qqy \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-RUN curl -L -O  https://github.com/lightstep/otel-launcher-java/releases/latest/download/lightstep-opentelemetry-javaagent.jar 
-
 COPY ["build.gradle", "gradlew", "./"]
 COPY gradle gradle
 RUN chmod +x gradlew
@@ -35,8 +29,9 @@ FROM openjdk:8-slim
 
 # Download Stackdriver Profiler Java agent
 RUN apt-get -y update && apt-get install -qqy \
-    wget \
+    wget curl \
     && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /opt/cprof && \
     wget -q -O- https://storage.googleapis.com/cloud-profiler/java/latest/profiler_java_agent.tar.gz \
     | tar xzv -C /opt/cprof && \
@@ -45,6 +40,10 @@ RUN mkdir -p /opt/cprof && \
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
+
+# LighStep Instrumentation
+RUN curl -L -O  https://github.com/lightstep/otel-launcher-java/releases/latest/download/lightstep-opentelemetry-javaagent.jar 
+
 
 WORKDIR /app
 COPY --from=builder /app .
