@@ -44,7 +44,6 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
 # LighStep Instrumentation
 RUN curl -L -O  https://github.com/lightstep/otel-launcher-java/releases/latest/download/lightstep-opentelemetry-javaagent.jar 
 
-
 WORKDIR /app
 COPY --from=builder /app .
 
