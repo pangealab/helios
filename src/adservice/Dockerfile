@@ -27,6 +27,8 @@ RUN ./gradlew installDist
 
 FROM openjdk:8-slim
 
+WORKDIR /app
+
 # Download Stackdriver Profiler Java agent
 RUN apt-get -y update && apt-get install -qqy \
     wget curl \
@@ -44,7 +46,6 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
 # LighStep Instrumentation
 RUN curl -L -O  https://github.com/lightstep/otel-launcher-java/releases/latest/download/lightstep-opentelemetry-javaagent.jar 
 
-WORKDIR /app
 COPY --from=builder /app .
 
 EXPOSE 9555
