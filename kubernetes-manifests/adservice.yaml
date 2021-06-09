@@ -29,18 +29,28 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: adservice
+        image: pangealab/adservice:latest
         ports:
         - containerPort: 9555
+        envFrom:
+        - configMapRef:
+            name: lightstep-configmap        
         env:
         - name: PORT
           value: "9555"
+        - name: LS_SERVICE_NAME
+          value: adservice
+        - name: LS_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: lightstep-credentials
+              key: accessToken          
         # - name: DISABLE_STATS
         #   value: "1"
         # - name: DISABLE_TRACING
         #   value: "1"
-        # - name: JAEGER_SERVICE_ADDR
-        #   value: "jaeger-collector:14268"
+        - name: JAEGER_SERVICE_ADDR
+          value: "simplest-collector.jaeger.svc.cluster.local:14268"
         resources:
           requests:
             cpu: 200m
