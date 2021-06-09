@@ -23,6 +23,7 @@ import (
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/lightstep/otel-launcher-go/launcher"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
@@ -35,6 +36,8 @@ import (
 
 	pb "github.com/pangealab/helios/src/shippingservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
+	grpcotel "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
 const (
@@ -58,6 +61,11 @@ func init() {
 }
 
 func main() {
+
+	// LightStep Instrumentation
+	otel := initLightstepTracing(log)
+	defer otel.Shutdown()
+
 	if os.Getenv("DISABLE_TRACING") == "" {
 		log.Info("Tracing enabled.")
 		go initTracing()
@@ -86,10 +94,22 @@ func main() {
 	var srv *grpc.Server
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled.")
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+
+		// LightStep Instrumentation
+		// srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+			grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		)
 	} else {
 		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
+		// LightStep Instrumentation
+		// srv = grpc.NewServer()
+		srv = grpc.NewServer(
+			grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor()),
+			grpc.StreamInterceptor(grpcotel.StreamServerInterceptor()),
+		)
 	}
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
@@ -234,4 +254,14 @@ func initProfiling(service, version string) {
 		time.Sleep(d)
 	}
 	log.Warn("could not initialize Stackdriver profiler after retrying, giving up")
+}
+
+// LightStep Instrumentation
+func initLightstepTracing(log logrus.FieldLogger) launcher.Launcher {
+	launcher := launcher.ConfigureOpentelemetry(
+		launcher.WithLogLevel("debug"),
+		launcher.WithLogger(log),
+	)
+	log.Info("Initialized Lightstep OpenTelemetry launcher")
+	return launcher
 }
