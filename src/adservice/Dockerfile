@@ -16,6 +16,9 @@ FROM openjdk:8-slim as builder
 
 WORKDIR /app
 
+# LighStep Instrumentation
+RUN curl -L -O  https://github.com/lightstep/otel-launcher-java/releases/latest/download/lightstep-opentelemetry-javaagent.jar 
+
 COPY ["build.gradle", "gradlew", "./"]
 COPY gradle gradle
 RUN chmod +x gradlew
