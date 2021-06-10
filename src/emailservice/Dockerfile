@@ -43,11 +43,11 @@ WORKDIR /email_server
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Grab packages from builder
-COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
-
 # LightStep Instrumentation
 RUN pip install opentelemetry-launcher
+
+# Grab packages from builder
+COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
 # Add the application
 COPY . .
