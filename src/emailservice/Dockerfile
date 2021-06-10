@@ -40,14 +40,13 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
-# LightStep Instrumentation
-RUN pip install opentelemetry-launcher
-RUN opentelemetry-bootstrap --action=install    
-
 WORKDIR /email_server
 
 # Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
+
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
 
 # Add the application
 COPY . .
