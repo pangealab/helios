@@ -47,9 +47,12 @@ COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
 # LightStep Instrumentation
 RUN pip install opentelemetry-launcher
+RUN opentelemetry-bootstrap --action=install
 
 # Add the application
 COPY . .
 
 EXPOSE 8080
-ENTRYPOINT [ "python", "email_server.py" ]
+# LightStep Instrumentation
+# ENTRYPOINT [ "python", "email_server.py" ]
+ENTRYPOINT [ "opentelemetry-instrument", "python", "email_server.py" ]
