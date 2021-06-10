@@ -13,20 +13,32 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 
 from concurrent import futures
 import argparse
+import os
 import sys
 import time
 import grpc
 from jinja2 import Environment, FileSystemLoader, select_autoescape, TemplateError
+from google.api_core.exceptions import GoogleAPICallError
+from google.auth.exceptions import DefaultCredentialsError
 
 import demo_pb2
 import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
+from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
+from opencensus.ext.grpc import server_interceptor
+from opencensus.common.transports.async_ import AsyncTransport
+from opencensus.trace import samplers
+
+# import googleclouddebugger
+import googlecloudprofiler
+
+from logger import getJSONLogger
+logger = getJSONLogger('emailservice-server')
 
 # try:
 #     googleclouddebugger.enable(
@@ -35,9 +47,6 @@ from grpc_health.v1 import health_pb2_grpc
 #     )
 # except:
 #     pass
-
-from logger import getJSONLogger
-logger = getJSONLogger('emailservice-server')
 
 # Loads confirmation email template from file
 env = Environment(
@@ -50,6 +59,15 @@ class BaseEmailService(demo_pb2_grpc.EmailServiceServicer):
   def Check(self, request, context):
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
+
+class EmailService(BaseEmailService):
+  def __init__(self):
+    raise Exception('cloud mail client not implemented')
+    super().__init__()
+
+  def Watch(self, request, context):
+    return health_pb2.HealthCheckResponse(
+      status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
 
 class EmailService(BaseEmailService):
   def __init__(self):
@@ -90,7 +108,7 @@ class EmailService(BaseEmailService):
 
     try:
       EmailService.send_email(self.client, email, confirmation)
-    except err:
+    except GoogleAPICallError as err:
       context.set_details("An error occurred when sending the email.")
       print(err.message)
       context.set_code(grpc.StatusCode.INTERNAL)
@@ -128,6 +146,31 @@ def start(dummy_mode):
       time.sleep(3600)
   except KeyboardInterrupt:
     server.stop(0)
+
+def initStackdriverProfiling():
+  project_id = None
+  try:
+    project_id = os.environ["GCP_PROJECT_ID"]
+  except KeyError:
+    # Environment variable not set
+    pass
+
+  for retry in range(1,4):
+    try:
+      if project_id:
+        googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0, project_id=project_id)
+      else:
+        googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0)
+      logger.info("Successfully started Stackdriver Profiler.")
+      return
+    except (BaseException) as exc:
+      logger.info("Unable to start Stackdriver Profiler Python agent. " + str(exc))
+      if (retry < 4):
+        logger.info("Sleeping %d to retry initializing Stackdriver Profiler"%(retry*10))
+        time.sleep (1)
+      else:
+        logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
+  return    
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
