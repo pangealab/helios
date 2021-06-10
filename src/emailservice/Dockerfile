@@ -47,6 +47,7 @@ COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
 # LightStep Instrumentation
 RUN pip install opentelemetry-launcher
+RUN opentelemetry-bootstrap --action=install
 
 # Add the application
 COPY . .
