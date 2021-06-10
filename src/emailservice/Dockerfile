@@ -35,7 +35,6 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 # LightStep Instrumentation
 RUN pip install opentelemetry-launcher
-RUN opentelemetry-bootstrap --action=install
 
 # Add the application
 COPY . .
