@@ -45,8 +45,8 @@ spec:
             secretKeyRef:
               name: lightstep-credentials
               key: accessToken
-        # - name: LS_METRICS_ENABLED
-        #   value: "False"                
+        - name: LS_METRICS_ENABLED
+          value: "False"    
         # - name: DISABLE_TRACING
         #   value: "1"
         - name: DISABLE_PROFILER

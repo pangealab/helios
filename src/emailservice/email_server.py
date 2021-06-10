@@ -59,10 +59,10 @@ class BaseEmailService(demo_pb2_grpc.EmailServiceServicer):
   def Check(self, request, context):
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
-  
+
   def Watch(self, request, context):
     return health_pb2.HealthCheckResponse(
-      status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
+      status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)      
 
 class EmailService(BaseEmailService):
   def __init__(self):
@@ -103,7 +103,7 @@ class EmailService(BaseEmailService):
 
     try:
       EmailService.send_email(self.client, email, confirmation)
-    except GoogleAPICallError as err:
+    except err:
       context.set_details("An error occurred when sending the email.")
       print(err.message)
       context.set_code(grpc.StatusCode.INTERNAL)
@@ -166,8 +166,7 @@ def initStackdriverProfiling():
         time.sleep (1)
       else:
         logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
-  return
-
+  return    
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
@@ -195,6 +194,6 @@ if __name__ == '__main__':
       tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
   except (KeyError, DefaultCredentialsError):
       logger.info("Tracing disabled.")
-      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
+      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()  
 
   start(dummy_mode = True)
