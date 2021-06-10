@@ -21,8 +21,15 @@ RUN apt-get -qq update \
         g++ \
     && rm -rf /var/lib/apt/lists/*
 
-FROM base as final
+# get packages
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
+RUN opentelemetry-bootstrap --action=install
+
+FROM base as final
 # Enable unbuffered logging
 ENV PYTHONUNBUFFERED=1
 # Enable Profiler
@@ -38,13 +45,6 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     chmod +x /bin/grpc_health_probe
 
 WORKDIR /email_server
-
-# get packages
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# LightStep Instrumentation
-RUN pip install opentelemetry-launcher
 
 # Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
