@@ -26,6 +26,9 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 FROM base as final
+
+RUN pip install opentelemetry-launcher
+
 # Enable unbuffered logging
 ENV PYTHONUNBUFFERED=1
 # Enable Profiler
@@ -47,9 +50,6 @@ COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
 # Add the application
 COPY . .
-
-# LightStep Instrumentation
-RUN pip install opentelemetry-launcher
 
 EXPOSE 8080
 
