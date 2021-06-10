@@ -25,6 +25,9 @@ RUN apt-get -qq update \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
+
 FROM base as final
 # Enable unbuffered logging
 ENV PYTHONUNBUFFERED=1
@@ -46,7 +49,6 @@ WORKDIR /email_server
 COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
 # LightStep Instrumentation
-RUN pip install opentelemetry-launcher
 RUN opentelemetry-bootstrap --action=install
 
 # Add the application
