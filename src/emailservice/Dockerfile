@@ -16,27 +16,24 @@ FROM python:3.7-slim as base
 
 RUN apt-get -qq update \
     && apt-get install -y --no-install-recommends \
-    g++ git \
+    g++ wget \
     && rm -rf /var/lib/apt/lists/*
+
+# get packages
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+RUN pip install opentelemetry-launcher
 
 # Enable unbuffered logging
 ENV PYTHONUNBUFFERED=1
 # Enable Profiler
 ENV ENABLE_PROFILER=1
 
-RUN apt-get -qq update \
-    && apt-get install -y --no-install-recommends \
-    wget
-
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
 WORKDIR /email_server
-# get packages
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip install opentelemetry-launcher
 
 # Add the application
 COPY . .

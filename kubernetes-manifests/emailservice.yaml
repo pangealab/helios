@@ -29,7 +29,8 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: pangealab/emailservice:latest
+        # image: pangealab/emailservice:latest
+        image: gcr.io/google-samples/microservices-demo/emailservice:v0.2.3
         ports:
         - containerPort: 8080
         envFrom:
