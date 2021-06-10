@@ -45,6 +45,9 @@ WORKDIR /email_server
 # Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.7/ /usr/local/lib/python3.7/
 
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
+
 # Add the application
 COPY . .
 
