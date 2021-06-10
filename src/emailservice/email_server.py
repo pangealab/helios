@@ -59,12 +59,7 @@ class BaseEmailService(demo_pb2_grpc.EmailServiceServicer):
   def Check(self, request, context):
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
-
-class EmailService(BaseEmailService):
-  def __init__(self):
-    raise Exception('cloud mail client not implemented')
-    super().__init__()
-
+  
   def Watch(self, request, context):
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
@@ -127,7 +122,8 @@ class HealthCheck():
       status=health_pb2.HealthCheckResponse.SERVING)
 
 def start(dummy_mode):
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
+                       interceptors=(tracer_interceptor,))
   service = None
   if dummy_mode:
     service = DummyEmailService()
@@ -170,9 +166,35 @@ def initStackdriverProfiling():
         time.sleep (1)
       else:
         logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
-  return    
+  return
+
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
+
+  # Profiler
+  try:
+    if "DISABLE_PROFILER" in os.environ:
+      raise KeyError()
+    else:
+      logger.info("Profiler enabled.")
+      initStackdriverProfiling()
+  except KeyError:
+      logger.info("Profiler disabled.")
+
+  # Tracing
+  try:
+    if "DISABLE_TRACING" in os.environ:
+      raise KeyError()
+    else:
+      logger.info("Tracing enabled.")
+      sampler = samplers.AlwaysOnSampler()
+      exporter = stackdriver_exporter.StackdriverExporter(
+        project_id=os.environ.get('GCP_PROJECT_ID'),
+        transport=AsyncTransport)
+      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+  except (KeyError, DefaultCredentialsError):
+      logger.info("Tracing disabled.")
+      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
 
   start(dummy_mode = True)
