@@ -17,7 +17,7 @@
 // LightStep Instrumentation
 const tracer = require('./tracer')(process.env.LS_SERVICE_NAME);
 const opentelemetry = require('@opentelemetry/api');
-const PORT = process.env.PORT;
+// const PORT = process.env.PORT;
 
 if(process.env.DISABLE_PROFILER) {
   console.log("Profiler disabled.")
