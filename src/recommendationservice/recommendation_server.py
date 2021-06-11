@@ -142,9 +142,10 @@ if __name__ == "__main__":
     channel = grpc.insecure_channel(catalog_addr)
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
+    # LightStep Instrumentation
     # create gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-                      interceptors=(tracer_interceptor,))
+    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(tracer_interceptor,))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # add class to gRPC server
     service = RecommendationService()
