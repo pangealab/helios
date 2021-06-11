@@ -29,12 +29,24 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: paymentservice
+        image: pangealab/paymentservice:latest
         ports:
         - containerPort: 50051
+        envFrom:
+        - configMapRef:
+            name: lightstep-configmap           
         env:
         - name: PORT
           value: "50051"
+        - name: LS_SERVICE_NAME
+          value: paymentservice
+        - name: LS_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: lightstep-credentials
+              key: accessToken       
+        - name: JAEGER_SERVICE_ADDR
+          value: "simplest-collector.jaeger.svc.cluster.local:14268"                        
         readinessProbe:
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:50051"]
