@@ -29,6 +29,9 @@ WORKDIR /recommendationservice
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
+# LightStep Instrumentation
+RUN pip install opentelemetry-launcher
+
 # add files into working directory
 COPY . .
 
@@ -36,4 +39,5 @@ COPY . .
 ENV PORT "8080"
 EXPOSE 8080
 
-ENTRYPOINT ["python", "/recommendationservice/recommendation_server.py"]
+# LightStep Instrumentation
+ENTRYPOINT [ "opentelemetry-instrument", "python", "/recommendationservice/recommendation_server.py"]
