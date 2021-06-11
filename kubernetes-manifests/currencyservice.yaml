@@ -28,7 +28,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: currencyservice
+        image: pangealab/currencyservice:latest
         ports:
         - name: grpc
           containerPort: 7000
@@ -48,6 +48,8 @@ spec:
             secretKeyRef:
               name: lightstep-credentials
               key: accessToken
+        - name: JAEGER_SERVICE_ADDR
+          value: "simplest-collector.jaeger.svc.cluster.local:14268"              
         readinessProbe:
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:7000"]
