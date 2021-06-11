@@ -14,12 +14,16 @@ certifi==2021.5.30
     # via requests
 chardet==3.0.4
     # via requests
+click==8.0.1
+    # via flask
 deprecated==1.2.12
     # via
     #   opentelemetry-api
     #   opentelemetry-propagator-b3
 environs==9.3.2
     # via opentelemetry-launcher
+flask==1.1.2
+    # via -r requirements.in
 google-api-core[grpc]==1.23.0
     # via
     #   -r requirements.in
@@ -74,8 +78,14 @@ httplib2==0.19.1
     #   google-auth-httplib2
 idna==2.10
     # via requests
+importlib-metadata==4.5.0
+    # via click
+itsdangerous==2.0.1
+    # via flask
 jinja2==2.11.3
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   flask
 markupsafe==2.0.1
     # via jinja2
 marshmallow==3.12.1
@@ -221,11 +231,15 @@ six==1.16.0
     #   grpcio
     #   protobuf
 typing-extensions==3.10.0.0
-    # via asgiref
+    # via
+    #   asgiref
+    #   importlib-metadata
 uritemplate==3.0.1
     # via google-api-python-client
 urllib3==1.25.11
     # via requests
+werkzeug==2.0.1
+    # via flask
 wrapt==1.12.1
     # via
     #   deprecated
@@ -235,6 +249,8 @@ wrapt==1.12.1
     #   opentelemetry-instrumentation-jinja2
     #   opentelemetry-instrumentation-sqlite3
     #   opentelemetry-instrumentation-urllib3
+zipp==3.4.1
+    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
