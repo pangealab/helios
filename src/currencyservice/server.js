@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+// LightStep Instrumentation
+const tracer = require('./tracer')(process.env.LS_SERVICE_NAME);
+const opentelemetry = require('@opentelemetry/api');
+const PORT = process.env.PORT;
+
 if(process.env.DISABLE_PROFILER) {
   console.log("Profiler disabled.")
 }
@@ -26,7 +31,6 @@ else {
     }
   });
 }
-
 
 if(process.env.DISABLE_TRACING) {
   console.log("Tracing disabled.")
@@ -91,7 +95,10 @@ function _loadProto (path) {
  * Uses public data from European Central Bank
  */
 function _getCurrencyData (callback) {
+  // LightStep Instrumentation
+  const span = tracer.startSpan('_getCurrencyData', { parent : parentSpan });
   const data = require('./data/currency_conversion.json');
+  span.end();
   callback(data);
 }
 
@@ -110,9 +117,14 @@ function _carry (amount) {
  * Lists the supported currencies
  */
 function getSupportedCurrencies (call, callback) {
+  // LightStep Instrumentation
+  const parentSpan = opentelemetry.getSpan(opentelemetry.context.active());
+  const span = tracer.startSpan('getSupportedCurrencies', { parent : parentSpan });
+  span.setAttribute('vendor.error_id', '17343337');
   logger.info('Getting supported currencies...');
   _getCurrencyData((data) => {
     callback(null, {currency_codes: Object.keys(data)});
+    span.end();
   });
 }
 
