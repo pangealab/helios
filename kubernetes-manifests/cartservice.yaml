@@ -29,12 +29,30 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: cartservice
+        image: pangealab/cartservice:latest
         ports:
         - containerPort: 7070
+        envFrom:
+        - configMapRef:
+            name: lightstep-configmap        
         env:
         - name: REDIS_ADDR
           value: "redis-cart:6379"
+        - name: LS_SERVICE_NAME
+          value: cartservice
+        - name: LS_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: lightstep-credentials
+              key: accessToken
+        # - name: DISABLE_STATS
+        #   value: "1"
+        # - name: DISABLE_TRACING
+        #   value: "1"
+        # - name: DISABLE_PROFILER
+        #   value: "1"
+        - name: JAEGER_SERVICE_ADDR
+          value: "simplest-collector.jaeger.svc.cluster.local:14268"                        
         resources:
           requests:
             cpu: 200m
