@@ -65,11 +65,11 @@ spec:
           value: "simplest-collector.jaeger.svc.cluster.local:14268"        
         resources:
           requests:
-            cpu: 100m
-            memory: 220Mi
-          limits:
             cpu: 200m
-            memory: 450Mi
+            memory: 180Mi
+          limits:
+            cpu: 300m
+            memory: 300Mi
 ---
 apiVersion: v1
 kind: Service
