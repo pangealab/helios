@@ -328,20 +328,12 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		ccCVV, _      = strconv.ParseInt(r.FormValue("credit_card_cvv"), 10, 32)
 	)
 
-	var (
-		sessionIDKey = attribute.Key("sessionid")
-		emailKey     = attribute.Key("email")
-		zipcodeKey   = attribute.Key("zipcode")
-		stateKey     = attribute.Key("state")
-		countryKey   = attribute.Key("country")
-	)
-
 	// LightStep Instrumentation
-	trace.SpanFromContext(r.Context()).SetAttributes(sessionIDKey.String(sessionID(r)))
-	trace.SpanFromContext(r.Context()).SetAttributes(emailKey.String(email))
-	trace.SpanFromContext(r.Context()).SetAttributes(zipcodeKey.Int64(zipCode))
-	trace.SpanFromContext(r.Context()).SetAttributes(stateKey.String(state))
-	trace.SpanFromContext(r.Context()).SetAttributes(countryKey.String(country))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("sessionID", sessionID(r)))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("email", email))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("zipcode", zipcode))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("state", state))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("country", country))
 
 	log.WithFields(logrus.Fields{
 		"sessionID": sessionID(r),
@@ -349,7 +341,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		"zipCode":   zipCode,
 		"state":     state,
 		"country":   country,
-	}).Info("PlaceOrderHandler Attributes")
+	}).Info("handlers.placeOrderHandler Attributes")
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
 		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
