@@ -348,7 +348,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		emailKey:     emailKey.String(email),
 		zipcodeKey:   zipcodeKey.Int64(zipCode),
 		stateKey:     stateKey.String(state),
-		stateKey:     countryKey.String(country)
+		stateKey:     countryKey.String(country),
 	}).Info("PlaceOrderHandler Attributes")
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
