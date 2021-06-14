@@ -32,6 +32,11 @@ import (
 
 	pb "github.com/pangealab/helios/src/frontend/genproto"
 	"github.com/pangealab/helios/src/frontend/money"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type platformDetails struct {
@@ -45,7 +50,11 @@ var (
 			"renderMoney":        renderMoney,
 			"renderCurrencyLogo": renderCurrencyLogo,
 		}).ParseGlob("templates/*.html"))
-	plat platformDetails
+	plat            platformDetails
+	meter           = otel.Meter("frontend")
+	checkoutCounter = metric.Must(meter).NewInt64Counter("frontend.checkout.count")
+	productCounter  = metric.Must(meter).NewInt64Counter("frontend.product.count")
+	cartCounter     = metric.Must(meter).NewInt64Counter("frontend.cart.count")
 )
 
 var validEnvs = []string{"local", "gcp", "azure", "aws", "onprem"}
@@ -141,7 +150,10 @@ func (plat *platformDetails) setPlatformDetails(env string) {
 func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	id := mux.Vars(r)["id"]
+	productLabel := attribute.String("productId", id)
 	if id == "" {
+		trace.SpanFromContext(r.Context()).SetAttributes(attribute.Bool("error", true))
+		productCounter.Add(r.Context(), 1, productLabel, attribute.Int("status", http.StatusBadRequest))
 		renderHTTPError(log, r, w, errors.New("product id not specified"), http.StatusBadRequest)
 		return
 	}
