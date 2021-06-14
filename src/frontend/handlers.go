@@ -331,7 +331,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 	// LightStep Instrumentation
 	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("sessionID", sessionID(r)))
 	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("email", email))
-	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("zipcode", zipcode))
+	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("zipcode", zipCode))
 	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("state", state))
 	trace.SpanFromContext(r.Context()).SetAttributes(attribute.String("country", country))
 
