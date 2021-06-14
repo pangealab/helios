@@ -333,7 +333,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		emailKey     = attribute.Key("email")
 		zipcodeKey   = attribute.Key("zipcode")
 		stateKey     = attribute.Key("state")
-		countryKey   = attribute.Key("country")
+		stateKey     = attribute.Key("country")
 	)
 
 	// LightStep Instrumentation
@@ -342,7 +342,14 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 	trace.SpanFromContext(r.Context()).SetAttributes(zipcodeKey.Int64(zipCode))
 	trace.SpanFromContext(r.Context()).SetAttributes(stateKey.String(state))
 	trace.SpanFromContext(r.Context()).SetAttributes(countryKey.String(country))
-	log.Info("Attributes: " + sessionIDKey.String(sessionID(r)) + emailKey.String(email) + zipcodeKey.Int64(zipCode) + stateKey.String(state) + countryKey.String(country))
+
+	log.WithFields(log.Fields{
+		sessionIDKey: sessionIDKey.String(sessionID(r)),
+		emailKey:     emailKey.String(email),
+		zipcodeKey:   zipcodeKey.Int64(zipCode),
+		stateKey:     stateKey.String(state),
+		stateKey:     countryKey.String(country)
+	}).Info("PlaceOrderHandler Attributes")
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
 		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
