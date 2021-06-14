@@ -342,7 +342,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 	trace.SpanFromContext(r.Context()).SetAttributes(zipcodeKey.Int64(zipCode))
 	trace.SpanFromContext(r.Context()).SetAttributes(stateKey.String(state))
 	trace.SpanFromContext(r.Context()).SetAttributes(countryKey.String(country))
-	log.Info("Attributes: " + sessionIDKey.String(sessionID(r)) + emailKey.String(email) + zipcodeKey.Int64(zipCode) + stateKey.String(state) + countryKey.String(country)
+	log.Info("Attributes: " + sessionIDKey.String(sessionID(r)) + emailKey.String(email) + zipcodeKey.Int64(zipCode) + stateKey.String(state) + countryKey.String(country))
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
 		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
