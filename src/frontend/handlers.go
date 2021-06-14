@@ -30,7 +30,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/trace"
 
 	pb "github.com/pangealab/helios/src/frontend/genproto"
@@ -329,8 +328,6 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		ccCVV, _      = strconv.ParseInt(r.FormValue("credit_card_cvv"), 10, 32)
 	)
 
-	ctx := r.Context()
-
 	var (
 		sessionIDKey = attribute.Key("sessionid")
 		emailKey     = attribute.Key("email")
@@ -339,12 +336,11 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		countryKey   = attribute.Key("country")
 	)
 
-	ctx = baggage.ContextWithValues(ctx, sessionIDKey.String(sessionID(r)))
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(sessionIDKey.String(sessionID(r)), emailKey.String(email), zipcodeKey.Int64(zipCode), stateKey.String(state), countryKey.String(country))
+	// LightStep Instrumentation
+	trace.SpanFromContext(r.Context()).SetAttributes(sessionIDKey.String(sessionID(r)), emailKey.String(email), zipcodeKey.Int64(zipCode), stateKey.String(state), countryKey.String(country))
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
-		PlaceOrder(ctx, &pb.PlaceOrderRequest{
+		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
 			Email: email,
 			CreditCard: &pb.CreditCardInfo{
 				CreditCardNumber:          ccNumber,
