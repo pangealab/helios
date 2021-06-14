@@ -29,14 +29,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/baggage"
+	"go.opentelemetry.io/otel/trace"
 
 	pb "github.com/pangealab/helios/src/frontend/genproto"
 	"github.com/pangealab/helios/src/frontend/money"
-
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type platformDetails struct {
@@ -50,11 +48,7 @@ var (
 			"renderMoney":        renderMoney,
 			"renderCurrencyLogo": renderCurrencyLogo,
 		}).ParseGlob("templates/*.html"))
-	plat            platformDetails
-	meter           = otel.Meter("frontend")
-	checkoutCounter = metric.Must(meter).NewInt64Counter("frontend.checkout.count")
-	productCounter  = metric.Must(meter).NewInt64Counter("frontend.product.count")
-	cartCounter     = metric.Must(meter).NewInt64Counter("frontend.cart.count")
+	plat platformDetails
 )
 
 var validEnvs = []string{"local", "gcp", "azure", "aws", "onprem"}
@@ -150,10 +144,7 @@ func (plat *platformDetails) setPlatformDetails(env string) {
 func (fe *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	id := mux.Vars(r)["id"]
-	productLabel := attribute.String("productId", id)
 	if id == "" {
-		trace.SpanFromContext(r.Context()).SetAttributes(attribute.Bool("error", true))
-		productCounter.Add(r.Context(), 1, productLabel, attribute.Int("status", http.StatusBadRequest))
 		renderHTTPError(log, r, w, errors.New("product id not specified"), http.StatusBadRequest)
 		return
 	}
@@ -337,6 +328,20 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		ccYear, _     = strconv.ParseInt(r.FormValue("credit_card_expiration_year"), 10, 32)
 		ccCVV, _      = strconv.ParseInt(r.FormValue("credit_card_cvv"), 10, 32)
 	)
+
+	ctx := r.Context()
+
+	var (
+		sessionIDKey = attribute.Key("sessionid")
+		emailKey     = attribute.Key("email")
+		zipcodeKey   = attribute.Key("zipcode")
+		stateKey     = attribute.Key("state")
+		countryKey   = attribute.Key("country")
+	)
+
+	ctx = baggage.ContextWithValues(ctx, sessionIDKey.String(sessionID(r)))
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(sessionIDKey.String(sessionID(r)), emailKey.String(email), zipcodeKey.Int64(zipCode), stateKey.String(state), countryKey.String(country))
 
 	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
 		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
