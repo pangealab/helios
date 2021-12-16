@@ -51,8 +51,8 @@ spec:
         #    value: "1"
         #  - name: DISABLE_PROFILER
         #    value: "1"
-        - name: JAEGER_SERVICE_ADDR
-          value: "simplest-collector.jaeger.svc.cluster.local:14268"
+        #  - name: JAEGER_SERVICE_ADDR
+        #    value: "simplest-collector.jaeger.svc.cluster.local:14268"
         resources:
           requests:
             cpu: 200m
@@ -61,13 +61,19 @@ spec:
             cpu: 300m
             memory: 300Mi
         readinessProbe:
+          failureThreshold: 3
           initialDelaySeconds: 20
           periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 1
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
         livenessProbe:
+          failureThreshold: 3
           initialDelaySeconds: 20
           periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 1
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]            
 ---
