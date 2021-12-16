@@ -45,10 +45,12 @@ spec:
             secretKeyRef:
               name: lightstep-credentials
               key: accessToken          
-        # - name: DISABLE_STATS
-        #   value: "1"
-        # - name: DISABLE_TRACING
-        #   value: "1"
+        #  - name: DISABLE_STATS
+        #    value: "1"
+        #  - name: DISABLE_TRACING
+        #    value: "1"
+        #  - name: DISABLE_PROFILER
+        #    value: "1"
         - name: JAEGER_SERVICE_ADDR
           value: "simplest-collector.jaeger.svc.cluster.local:14268"
         resources:
@@ -59,27 +61,15 @@ spec:
             cpu: 300m
             memory: 300Mi
         readinessProbe:
-          initialDelaySeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 3
-          periodSeconds: 5
+          initialDelaySeconds: 20
+          periodSeconds: 15
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
         livenessProbe:
-          initialDelaySeconds: 15
-          # timeoutSeconds: 1
-          periodSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
+          initialDelaySeconds: 20
+          periodSeconds: 15
           exec:
-            command: ["/bin/grpc_health_probe", "-addr=:9555"]
-        startupProbe:
-          failureThreshold: 30
-          periodSeconds: 10        
-          exec:
-            command: [ "/bin/grpc_health_probe", "-addr=:9555" ]
-        
+            command: ["/bin/grpc_health_probe", "-addr=:9555"]            
 ---
 apiVersion: v1
 kind: Service
