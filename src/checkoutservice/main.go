@@ -415,7 +415,7 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 
 func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, toCurrency string) (*pb.Money, error) {
 
-	// // Lightstep Instrumentation
+	// Lightstep Instrumentation
 	// conn, err := grpc.DialContext(ctx, cs.currencySvcAddr,
 	// 	grpc.WithInsecure(),
 	// 	grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
