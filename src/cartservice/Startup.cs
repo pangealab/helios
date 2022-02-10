@@ -73,12 +73,15 @@ namespace cartservice
                 .AddRedisInstrumentation(cartStore.Connection)
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
                 .AddOtlpExporter(opt => {
-                    opt.Endpoint = $"{lsHost}:{lsPort}";
-                    opt.Headers = new Metadata
-                    {
-                        { "lightstep-access-token", accessToken }
-                    };
-                    opt.Credentials = new SslCredentials();
+                    // opt.Endpoint = $"{lsHost}:{lsPort}";
+                    string uri = $"https://{lsHost}:{lsPort}";
+                    opt.Endpoint = new Uri(uri);
+                    // opt.Headers = new Metadata
+                    // {
+                    //     { "lightstep-access-token", accessToken }
+                    // };
+                    opt.Headers = "lightstep-access-token=" + accessToken;
+                    // opt.Credentials = new SslCredentials();
             }));
 
             // Initialize the redis store
